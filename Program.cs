@@ -11,6 +11,7 @@ namespace SudokuSolver
     {
         static int[,] SudokuTable = new int[9, 9];
 
+        //per linkare le cordiante a la loro entropia
         public struct CordEntropy
         {
             public CordEntropy(int x, int y, int[] entropy)
@@ -19,13 +20,12 @@ namespace SudokuSolver
                 Y = y;
                 ENTROPY = entropy; 
             }
-
             public int X { get; }
             public int Y { get; }
             public int[] ENTROPY { get; }
-
         }
 
+        //tetermina la cordinata sinitra del quadtante data una x o una y
         private static int DetQuadrantBegin(int num)
         {
             if (num <= 2)
@@ -42,6 +42,7 @@ namespace SudokuSolver
             }
         }
 
+        //orina i vari struct per la lungezza della loro entropia
         private static List<CordEntropy> StructSort(List<CordEntropy> arr)
         {
             CordEntropy support;
@@ -60,6 +61,7 @@ namespace SudokuSolver
             return arr;
         } 
 
+        //mostra il sudoku
         public static void Show()
         {
             for (int i = 0; i < SudokuTable.GetLength(0); i++)
@@ -82,6 +84,7 @@ namespace SudokuSolver
             Console.ForegroundColor = ConsoleColor.White;
         }
 
+        // carica il sudoku da il file di testo
         public static void LoadSudokutable()
         {
             int j = 0;
@@ -100,9 +103,9 @@ namespace SudokuSolver
             }
         }
 
+        //calcola l'etropia singola 
         public static int[] Probability(int x, int y)
         {
-            // optimization: after controll cheìk if entroy is one
             int[] entropy = {1, 2 ,3 ,4 ,5 ,6 ,7, 8, 9};
             //controllo per y
             for (int i = 0; i < SudokuTable.GetLength(0); i++)
@@ -115,30 +118,34 @@ namespace SudokuSolver
                     }
                 }
             }
-            
-            // controllo per x
-            for (int i = 0; i < SudokuTable.GetLength(0); i++)
+            if (entropy.GetLength(0) != 0)
             {
-                if (SudokuTable[x, i] != 0)
+                // controllo per x
+                for (int i = 0; i < SudokuTable.GetLength(0); i++)
                 {
-                    if (Array.Exists(entropy, ele => ele == SudokuTable[x, i]))
+                    if (SudokuTable[x, i] != 0)
                     {
-                        entropy = entropy.Where(val => val != SudokuTable[x, i]).ToArray();
+                        if (Array.Exists(entropy, ele => ele == SudokuTable[x, i]))
+                        {
+                            entropy = entropy.Where(val => val != SudokuTable[x, i]).ToArray();
+                        }
                     }
                 }
-            }
-            // controllo per quadrante
-            x = DetQuadrantBegin(x);
-            y = DetQuadrantBegin(y);
-            for (int i = x; i < 3; i++)
-            {
-                for (int j = y; j < 3; j++)
+                if (entropy.GetLength(0) != 0)
                 {
-                    if (SudokuTable[i, j] != 0)
+                    x = DetQuadrantBegin(x);
+                    y = DetQuadrantBegin(y);
+                    for (int i = x; i < 3; i++)
                     {
-                        if (Array.Exists(entropy, ele => ele == SudokuTable[i, j]))
+                        for (int j = y; j < 3; j++)
                         {
-                            entropy = entropy.Where(val => val != SudokuTable[i, j]).ToArray();
+                            if (SudokuTable[i, j] != 0)
+                            {
+                                if (Array.Exists(entropy, ele => ele == SudokuTable[i, j]))
+                                {
+                                    entropy = entropy.Where(val => val != SudokuTable[i, j]).ToArray();
+                                }
+                            }
                         }
                     }
                 }
@@ -146,6 +153,7 @@ namespace SudokuSolver
             return entropy;
         }
 
+        // calcola l'etropia e l'allega a delle cordinate restiuedno un array di entrambe
         public static CordEntropy[] CalculteEntropy()
         {
             List<CordEntropy> generalentropy = new List<CordEntropy> { };
@@ -162,8 +170,8 @@ namespace SudokuSolver
                 }
             }
             generalentropy = StructSort(generalentropy);
-
             /*
+            //debugging purpes
             foreach (CordEntropy item in generalentropy)
             {
                 Console.WriteLine("y: " + item.X + " x: " + item.Y);
@@ -176,7 +184,7 @@ namespace SudokuSolver
             */
             return generalentropy.ToArray();
         }
-
+        //controlla se il sudoku è corretto
         public static bool isCorect()
         {
             List<int> numeri = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -227,23 +235,29 @@ namespace SudokuSolver
             return true;   
         }
 
-        static void Main(string[] args)
+        // si occupa di controllare che il sudoku sia possibile e ripete finche non è corretto
+        static void SolveSudouk()
         {
-            int countcicles=0;
+            int countcicles = 0;
             CordEntropy placeholder = new CordEntropy(0, 0, new int[1]);
             int lastNumIndeciseve = 0;
+            bool stuck;
             while (!isCorect())
             {
-                
-                Console.WriteLine("Tentativo N" + countcicles++ +"\n");
+                Console.WriteLine("Tentativo N " + countcicles++ + "\n");
                 CordEntropy[] allEntropy = { placeholder };
+                stuck = true;
                 LoadSudokutable();
-                while (allEntropy.GetLength(0) >= 1)
+                while (allEntropy.GetLength(0) >= 1 && stuck)
                 {
                     allEntropy = CalculteEntropy();
                     foreach (CordEntropy item in allEntropy)
                     {
-                        if (item.ENTROPY.GetLength(0) != 0)
+                        if (item.ENTROPY.GetLength(0) == 0)
+                        {
+                            stuck = false;
+                        }
+                        else
                         {
                             if (lastNumIndeciseve != allEntropy.GetLength(0))
                             {
@@ -267,9 +281,14 @@ namespace SudokuSolver
                     }
                     lastNumIndeciseve = allEntropy.GetLength(0);
                 }
-                Show();
             }
-            Console.WriteLine(isCorect());
+        }
+
+        static void Main(string[] args)
+        {
+            SolveSudouk();
+            Show();
+            Console.WriteLine("il sudoku è risolto: " + isCorect());
             Console.ReadLine();
         }
     }
