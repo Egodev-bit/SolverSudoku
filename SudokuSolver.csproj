@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="InputSudoku.txt" />
+    <Content Include="Example Sudoku.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
