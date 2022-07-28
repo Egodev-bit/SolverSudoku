@@ -11,6 +11,50 @@ namespace SudokuSolver
     {
         static int[,] SudokuTable = new int[9, 9];
 
+
+        public static void LogoShow()
+        {
+            //hard coded not ideal but I can't think of a algoritm that could generate this pattern
+            List<string> logoDis = new List<string> () {
+                "                                @                                \n",
+                "                               @@@                               \n",
+                "                              @@@@@                              \n",
+                "                             @@@@@@@                             \n",
+                "                            @@@@@@@@@                            \n",
+                "                           @@@@@@@@@@@                           \n",
+                "                          @@@@@@ @@@@@@                          \n",
+                "                         @@@@@@   @@@@@@                         \n",
+                "             @@@        @@@@@@     @@@@@@        @@@             \n",
+                "            @@@@@@     @@@@@@       @@@@@@     @@@@@@            \n",
+                "           @@@@@@@@@, @@@@@@         @@@@@@ @@@@@@@@@@           \n",
+                "          @@@@@@@@@@@@@ @@@           @@@@@@ @@@@@@@@@@          \n",
+                "         @@@@@@* @@@@@@@@              @@@@@@ @@ *@@@@@@         \n",
+                "        @@@@@@     @@@@@@@@           @ @@@@@@     @@@@@@        \n",
+                "       @@@@@@     @@ @@@@@@@@       @@@@ @@@@@@     @@@@@@       \n",
+                "      @@@@@@     @@@@@ *@@@@@@@   @@@@@@@ @@@@@@     @@@@@@      \n",
+                "     @@@@@@     @@@@@@    @@@@@@@@@@@@@    @@@@@@     @@@@@@     \n",
+                "   .@@@@@@     @@@@@@       @@@@@@@@@       @@@@@@     @@@@@@    \n",
+                "  /@@@@@@     @@@@@@          @@@@@          @@@@@@     @@@@@@.  \n",
+                " &@@@@@@     @@@@@@             @             @@@@@@     @@@@@@( \n",
+                "@@@@@@@     @@@@@@                             @@@@@@     @@@@@@&\n"};
+            ConsoleColor[] colors = (ConsoleColor[])ConsoleColor.GetValues(typeof(ConsoleColor));
+            foreach (string item in logoDis)
+            {
+                Random rand = new Random(Guid.NewGuid().GetHashCode());
+                int randnm = rand.Next(colors.GetLength(0));
+                if (randnm != 0)
+                {
+                    Console.ForegroundColor = colors[randnm];
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                Console.Write(item);
+            }
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
         //per linkare le cordiante a la loro entropia
         public struct CordEntropy
         {
@@ -70,11 +114,11 @@ namespace SudokuSolver
                 {
                     if (SudokuTable[i,j] != 0)
                     {
-                        Console.ForegroundColor = ConsoleColor.DarkGreen;
+                        Console.ForegroundColor = ConsoleColor.Green;
                     }
                     else
                     {
-                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                        Console.ForegroundColor = ConsoleColor.Red;
                     }
                     Console.Write(" " + SudokuTable[i, j] + " ");
                     //Console.WriteLine("i :" + i + " j :"+ j);
@@ -236,7 +280,7 @@ namespace SudokuSolver
         }
 
         // si occupa di controllare che il sudoku sia possibile e ripete finche non è corretto
-        static void SolveSudouk()
+        static void SolveSudouk(bool ShowSud = false)
         {
             int countcicles = 0;
             CordEntropy placeholder = new CordEntropy(0, 0, new int[1]);
@@ -277,6 +321,12 @@ namespace SudokuSolver
                                 SudokuTable[item.X, item.Y] = item.ENTROPY[randnum];
                                 break;
                             }
+                            if (ShowSud && countcicles < 8)
+                            {
+                                Show();
+                                System.Threading.Thread.Sleep(10);
+                                Console.Clear();
+                            }
                         }
                     }
                     lastNumIndeciseve = allEntropy.GetLength(0);
@@ -286,7 +336,47 @@ namespace SudokuSolver
 
         static void Main(string[] args)
         {
-            SolveSudouk();
+            bool ready = false;
+            LogoShow();
+
+            Console.WriteLine("Benvenuto Utente, questo programma risolve sudoku :-D");
+            while (!ready)
+            {
+                Console.Write("Selezionare un opzione: Help, Solve o Show (più lento del 500%) ");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Attenzione Case sensitive!");
+                Console.ForegroundColor = ConsoleColor.White;
+                String input = Console.ReadLine();
+                switch (input)
+                {
+                    case "Help":
+                        {
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine("il programma analizza un sudoku inserito all interno del file InputSudoku.txt " +
+                                "seguedno un format che separa ogni numero e spazio vuoto con uno spazio, e segnala gli spazi vuoti del sudoku come x");
+                            Console.ForegroundColor = ConsoleColor.White;
+                            break;
+                        }
+                    case "Solve":
+                        {
+                            Console.Clear();
+                            SolveSudouk();
+                            ready = true;
+                            break;
+                        }
+                    case "Show":
+                        {
+                            Console.Clear();
+                            ready = true;
+                            SolveSudouk(ready);
+                            break;
+                        }
+                    default:
+                        Console.WriteLine("Input non riconiosciuto");
+                        break;
+                }
+            }
+            SolveSudouk(true);
             Show();
             Console.WriteLine("il sudoku è risolto: " + isCorect());
             Console.ReadLine();
